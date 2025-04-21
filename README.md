@@ -4,11 +4,11 @@ A simple Docker setup for Supabase.
 
 ## Features
 
-- Remove some unnecessary services, including `realtime`, `storage` and `function`.
-- Add support for OAuth providers.
+- Remove unnecessary services (`realtime`, `storage`, `function`) to improve performance.
+- Add support for OAuth(`github`, `twitter`) providers.
 - Add support for EMail Template.
 - Add SSL support.
-- Enable deploy in [dokploy](https://dokploy.com/)
+- Enable deploy in [dokploy](https://dokploy.com/).
 
 ## Getting started
 
@@ -45,13 +45,15 @@ You can configure Supabase by editing the `.env` file.
 
 - `SITE_URL`: The URL of your Application.
 - `API_EXTERNAL_URL`: The URL of your Supabase Instance.
+- `ADDITIONAL_REDIRECT_URLS`: Additional redirect URLs for OAuth providers.
 
 ### Auth Provider
 
-Add OAuth provider to auth section of  `docker-compose` file. For example, to add Github OAuth provider:
+Add OAuth provider to auth section of `docker-compose` file. For example, to add Github OAuth provider:
 
 ```yaml
 # Github OAuth config in auth.enviroment
+# Comment to disable this
 GOTRUE_EXTERNAL_GITHUB_ENABLED: true
 GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
 GOTRUE_EXTERNAL_GITHUB_SECRET: ${GITHUB_CLIENT_SECRET}
@@ -68,17 +70,19 @@ curl 'https://<PROJECT_REF>.supabase.co/auth/v1/settings' \
 -H "Authorization: Bearer <ANON_KEY>"
 ```
 
+or you can input the `Auth Providers` in Commmand Menu of Supabase to check the configuration.
+
 ### SMTP
 
-Like the official Supabase, you can use SMTP to send emails. In your `.env` file, add the following:
+Use SMTP to send emails. In your `.env` file, add the following to configure your SMTP server:
 
 ```shell
-SMTP_ADMIN_EMAIL=
-SMTP_HOST=
-SMTP_PORT=
-SMTP_USER=
-SMTP_PASS=
-SMTP_SENDER_NAME=
+SMTP_ADMIN_EMAIL=admin@example.com
+SMTP_HOST=supabase-mail
+SMTP_PORT=2500
+SMTP_USER=fake_mail_user
+SMTP_PASS=fake_mail_password
+SMTP_SENDER_NAME=fake_sender
 ```
 
 See [Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp) for more details.
@@ -86,7 +90,6 @@ See [Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp) for more de
 ### Email Templates
 
 You can customize the email templates by editing the files in `./docker-compose.yml`.
-
 
 ```yml
 GOTRUE_MAILER_TEMPLATES_RECOVERY: ${MAILER_TEMPLATES_RECOVERY}
@@ -106,8 +109,11 @@ MAILER_TEMPLATES_MAGIC_LINK="https://example.com/templates/magic-link.html"
 MAILER_TEMPLATES_EMAIL_CHANGE="https://example.com/templates/email-change.html"
 ```
 
+The email templates are written in HTML and can be customized to fit your needs. See [Supabase Email Templates](https://supabase.com/docs/guides/auth/auth-email-templates) for more details.
+
 ### SSL Configuration
 
+To enable SSL, you need to generate your own certificate and key files for Kong instance in supabase.
 Generate your cert and key files and copy it to `./volumns/ssl/` directory. In your `.env` file, add the following:
 
 ```shell
@@ -122,13 +128,13 @@ KONG_SSL_CERT: /mnt/ssl/${SSL_CERT_FILENAME}
 KONG_SSL_CERT_KEY: /mnt/ssl/${SSL_CERT_KEY_FILENAME}
 ```
 
+If you want to use a different way to maintain your certificate, like use Nginx as web-server and Let's Encrypt to generate and auto renew your certificate, you can uncomment it in `docker-compose.yml`.
 
 ### Other Configuration
 
 API Keys, Secrets, and other configurations can be found in the official Supabase documentation. Make sure to update your `.env` file accordingly.
 
 See [Docker Configuration](https://supabase.com/docs/guides/self-hosting/docker) for more details.
-
 
 ## Development
 
@@ -139,7 +145,7 @@ There is a `develop` docker file for development. You can override the `docker-c
 docker compose -f docker-compose.yml -f ./dev/docker-compose.dev.yml up
 ```
 
-##  Deploy in Dokploy
+## Deploy in Dokploy
 
 [Dokploy](https://dokploy.com/) is a stable deployment platform for Docker applications. It is a simple way to deploy your Docker application to the cloud.
 
@@ -148,16 +154,19 @@ Dokploy provide some [templates](https://docs.dokploy.com/docs/core/templates) f
 If you want some customization, you can deploy through your `docker-compose.yml` file. Here is an [example](./docker-compose.dokploy.yml).
 
 Here is the process to deploy Supabase from `docker-compose.yml` file.
+
 1. Create a new project in Dokploy.
 2. Create a Compose service in project.
 3. Configure the deployment.
+
 - Provider: set your github repo in github provider. or you can paste the contents of `./docker-compose.dokploy.yml` in raw provider.
 - Environment: paste the contents of `./.env` in environment.
-- Volumes: add all of volume files in volumes setting. for example: 
+- Volumes: add all of volume files in volumes setting. for example:
   - Content: content of [vector.sql](./volumes/logs/vector.yml)
   - Path: set to `/volumes/logs/vector.yml`
 - Docker links: enable `Isolate Deployment` in Utilities configuration.
 - Domains: set your domain in domains.
+
 4. Deploy.
 
 ## License
@@ -167,4 +176,3 @@ Here is the process to deploy Supabase from `docker-compose.yml` file.
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
