@@ -12,7 +12,13 @@ services:
     image: supabase/studio:20250331-156e8fd
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "node", "-e", "fetch('http://studio:3000/api/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})" ]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://studio:3000/api/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})",
+        ]
       timeout: 10s
       interval: 5s
       retries: 3
@@ -76,7 +82,6 @@ services:
       #- ./volumes/ssl:/mnt/ssl:z"
       - ../files/volumes/api/kong.yml:/home/kong/temp.yml:ro
 
-
   auth:
     container_name: supabase-auth
     image: supabase/gotrue:v2.164.0
@@ -87,7 +92,15 @@ services:
       analytics:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health" ]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9999/health",
+        ]
       timeout: 5s
       interval: 5s
       retries: 3
@@ -113,6 +126,7 @@ services:
       GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP}
       GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS}
       GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM}
+      GOTRUE_MAILER_EXTERNAL_HOSTS: ${MAILER_EXTERNAL_HOSTS}
 
       # Uncomment to bypass nonce check in ID Token flow. Commonly set to true when using Google Sign In on mobile.
       # GOTRUE_EXTERNAL_SKIP_NONCE_CHECK: true
@@ -170,7 +184,6 @@ services:
       #GOTRUE_MAILER_TEMPLATES_CONFIRMATION: ${MAILER_TEMPLATES_CONFIRMATION}
       #GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: ${MAILER_TEMPLATES_MAGIC_LINK}
       #GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: ${MAILER_TEMPLATES_EMAIL_CHANGE}
-
 
   rest:
     container_name: supabase-rest
@@ -322,7 +335,7 @@ services:
     container_name: supabase-analytics
     image: supabase/logflare:1.4.0
     healthcheck:
-      test: [ "CMD", "curl", "http://localhost:4000/health" ]
+      test: ["CMD", "curl", "http://localhost:4000/health"]
       timeout: 5s
       interval: 5s
       retries: 10
@@ -433,13 +446,12 @@ services:
     healthcheck:
       test:
         [
-
           "CMD",
           "wget",
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://vector:9001/health"
+          "http://vector:9001/health",
         ]
       timeout: 5s
       interval: 5s
@@ -450,7 +462,7 @@ services:
     environment:
       LOGFLARE_API_KEY: ${LOGFLARE_API_KEY}
     #command: [ "--config", "/etc/vector/vector.yml" ]
-    command: [ "--config", "/etc/vector/vector.yml" ]
+    command: ["--config", "/etc/vector/vector.yml"]
 
   # Update the DATABASE_URL if you are using an external Postgres database
   supavisor:
