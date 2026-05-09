@@ -4,7 +4,7 @@ A simple Docker setup for Supabase.
 
 ## Features
 
-- Remove unnecessary services (`realtime`, `storage`, `function`) to improve performance.
+- Remove unnecessary services (`realtime`, `storage`, `function`, `imgproxy`) to improve performance.
 - Add support for OAuth(`github`, `twitter`) providers.
 - Add support for EMail Template.
 - Add SSL support.
@@ -24,10 +24,18 @@ A simple Docker setup for Supabase.
 git clone https://github.com/alex-guoba/supabase-docker.git
 cd supabase-docker
 cp .env.example .env
+
+# To generate secrets and API keys:
+sh ./utils/generate-keys.sh
+sh ./utils/add-new-auth-keys.sh
+
 # Edit .env file to your needs
 
 # Start Supabase
 docker compose up -d
+
+# test
+sh ./tests/test-self-hosted.sh
 
 # Stop Supabase
 docker compose down
@@ -54,13 +62,19 @@ Add OAuth provider to auth section of `docker-compose` file. For example, to add
 ```yaml
 # Github OAuth config in auth.enviroment
 # Comment to disable this
-GOTRUE_EXTERNAL_GITHUB_ENABLED: true
+GOTRUE_EXTERNAL_GITHUB_ENABLED: ${GITHUB_ENABLED}
 GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
-GOTRUE_EXTERNAL_GITHUB_SECRET: ${GITHUB_CLIENT_SECRET}
-GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${AUTH_REDIRECT_URL}
+GOTRUE_EXTERNAL_GITHUB_SECRET: ${GITHUB_SECRET}
+GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
 ```
 
-Note that you need to set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in your `.env` file.
+Note that you need to set `GITHUB_CLIENT_ID` and `GITHUB_SECRET` in your `.env` file: 
+
+```
+GITHUB_ENABLED=true
+GITHUB_CLIENT_ID=
+GITHUB_SECRET=
+```
 
 After adding the provider, You can use the API to verify the configuration of your OAuth providers:
 
@@ -77,12 +91,15 @@ or you can input the `Auth Providers` in Commmand Menu of Supabase to check the 
 Use SMTP to send emails. In your `.env` file, add the following to configure your SMTP server:
 
 ```shell
+ENABLE_EMAIL_SIGNUP=true
+ENABLE_EMAIL_AUTOCONFIRM=false
 SMTP_ADMIN_EMAIL=admin@example.com
 SMTP_HOST=supabase-mail
 SMTP_PORT=2500
 SMTP_USER=fake_mail_user
 SMTP_PASS=fake_mail_password
 SMTP_SENDER_NAME=fake_sender
+ENABLE_ANONYMOUS_USERS=false
 ```
 
 See [Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp) for more details.
