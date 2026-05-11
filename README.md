@@ -8,7 +8,6 @@ A simple Docker setup for Supabase.
 - Add support for OAuth(`github`, `twitter`) providers.
 - Add support for EMail Template.
 - Add SSL support.
-- Enable deploy in [dokploy](https://dokploy.com/).
 
 ## Getting started
 
@@ -17,6 +16,7 @@ A simple Docker setup for Supabase.
 - Docker
 - Docker Compose
 - Git
+- Node
 
 ### Installation
 
@@ -25,11 +25,15 @@ git clone https://github.com/alex-guoba/supabase-docker.git
 cd supabase-docker
 cp .env.example .env
 
-# To generate secrets and API keys:
+# To generate secrets and API keys into `.env`:
 sh ./utils/generate-keys.sh
 sh ./utils/add-new-auth-keys.sh
 
-# Edit .env file to your needs
+# Update .env file to your needs
+
+#SUPABASE_PUBLIC_URL=http://<your-supabase-domain>
+#API_EXTERNAL_URL=http://<your-supabase-domain>
+#SITE_URL=https://<your-application-domain>
 
 # Start Supabase
 docker compose up -d
@@ -53,7 +57,6 @@ You can configure Supabase by editing the `.env` file.
 
 - `SITE_URL`: The URL of your Application.
 - `API_EXTERNAL_URL`: The URL of your Supabase Instance.
-- `ADDITIONAL_REDIRECT_URLS`: Additional redirect URLs for OAuth providers.
 
 ### Auth Provider
 
@@ -68,7 +71,7 @@ GOTRUE_EXTERNAL_GITHUB_SECRET: ${GITHUB_SECRET}
 GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
 ```
 
-Note that you need to set `GITHUB_CLIENT_ID` and `GITHUB_SECRET` in your `.env` file: 
+Note that you need to set `GITHUB_CLIENT_ID` and `GITHUB_SECRET` in your `.env` file:
 
 ```
 GITHUB_ENABLED=true
@@ -130,6 +133,8 @@ The email templates are written in HTML and can be customized to fit your needs.
 
 ### SSL Configuration
 
+#### Method 1: Use your own certificate with kong in supabase instance
+
 To enable SSL, you need to generate your own certificate and key files for Kong instance in supabase.
 Generate your cert and key files and copy it to `./volumns/ssl/` directory. In your `.env` file, add the following:
 
@@ -145,7 +150,25 @@ KONG_SSL_CERT: /mnt/ssl/${SSL_CERT_FILENAME}
 KONG_SSL_CERT_KEY: /mnt/ssl/${SSL_CERT_KEY_FILENAME}
 ```
 
-If you want to use a different way to maintain your certificate, like use Nginx as web-server and Let's Encrypt to generate and auto renew your certificate, you can uncomment it in `docker-compose.yml`.
+#### Method 2: Use reverse proxy and let's encrypt
+
+Adding a reverse proxy with automatic HTTPS in front of your self-hosted Supabase, you can use nginx as a reverse proxy.
+
+Change your `.env` file for nginx:
+
+``shell
+PROXY_DOMAIN=your-domain.example.com
+CERTBOT_EMAIL=admin@your-domain.example.com
+
+````
+
+Start Nginx by using the pre-configured docker-compose.nginx.yml override:
+
+```shell
+docker compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
+````
+
+More details can be found in [Supabase Reverse Proxy with HTTPS](https://supabase.com/docs/guides/self-hosting/self-hosted-proxy-https).
 
 ### Other Configuration
 
